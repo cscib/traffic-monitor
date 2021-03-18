@@ -7,10 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-
+import java.util.concurrent.Future;
 
 @Slf4j
 @Component
@@ -29,16 +32,49 @@ public class DispatcherManager implements ApplicationRunner {
     @Autowired
     private DataLoader dataLoader;
 
+    private volatile boolean isRunning;
+
+    private volatile List<Future<Boolean>> sendMessagesTasks;
 
     @Override
     public void run(ApplicationArguments args){
-        dataLoader.load();
-        sendPointsToDrones();
+        start();
     }
 
-    private void sendPointsToDrones() {
-        for (Long droneId: queuesMap.values()) {
-            dispatcherService.sendMessagesToDrone(droneId, droneMonitorPointRepository.findAll());
+
+    public void start() {
+        log.warn(" STARTING SIMULATION *****");
+        synchronized (this) {
+            if (!isRunning) {
+                log.warn("STARTING SIMULATION *****");
+                dataLoader.load();
+                sendMessagesTasks = new ArrayList<>();
+                for (Long droneId: queuesMap.values()) {
+                    sendMessagesTasks.add(dispatcherService.sendMessagesToDrone(droneId, droneMonitorPointRepository.findAll()));
+                }
+                isRunning = true;
+            } else {
+                log.warn("SIMULATION IS ALREADY RUNNING *****");
+            }
+        }
+    }
+
+    @Scheduled(cron = "0 10 08 * * ?", zone = "GMT")
+    public void stop() {
+        log.warn("STOPPING SIMULATION *****");
+        synchronized (this) {
+            if (isRunning) {
+                sendMessagesTasks.forEach(task->task.cancel(true));
+                dispatcherService.shutDownDrones();
+                isRunning = false;
+            }
+        }
+        log.warn("SIMULATION SHUTDOWN*****");
+    }
+
+    public boolean isRunning() {
+        synchronized (this) {
+            return isRunning;
         }
     }
 }

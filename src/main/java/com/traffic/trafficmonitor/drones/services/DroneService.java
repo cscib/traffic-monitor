@@ -33,7 +33,7 @@ public class DroneService {
     public void simulateFlight(long droneId, long flightTimeMs) {
         try {
 
-            log.info("[{}] Flight Simulation of drone. Waiting for {} seconds.", droneId, flightTimeMs);
+            log.debug("[{}] Flight Simulation of drone. Waiting for {} seconds.", droneId, flightTimeMs);
             Thread.sleep(flightTimeMs);
 
         } catch (InterruptedException e) {

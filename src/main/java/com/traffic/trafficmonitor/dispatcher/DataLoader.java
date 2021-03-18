@@ -10,13 +10,10 @@ import com.univocity.parsers.csv.CsvRoutines;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
 import org.springframework.data.geo.*;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestMapping;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -41,7 +38,6 @@ public class DataLoader{
 
     @Value("${drones.fileName}")
     private String[] pointsFileNames;
-
 
     @Autowired
     private DroneMonitorPointRepository droneMonitorPointRepository;

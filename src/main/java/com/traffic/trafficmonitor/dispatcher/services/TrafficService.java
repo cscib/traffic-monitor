@@ -1,12 +1,10 @@
 package com.traffic.trafficmonitor.dispatcher.services;
 
 import com.traffic.trafficmonitor.dispatcher.repositories.TrafficReportRepository;
-import com.traffic.trafficmonitor.model.cache.DroneMonitorPoint;
 import com.traffic.trafficmonitor.model.cache.TrafficReport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

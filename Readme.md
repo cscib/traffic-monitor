@@ -1,8 +1,7 @@
-Assumptions:
-If filenames are not specified the app will be stopped
-Run $ docker run -p 16379:6379 -d redis:6.0 redis-server --requirepass "mypass"
-sudo docker exec -i ceed4edf9177 redis-cli -a "mypass" FLUSHALL
+#1. Create Network if you didn't create it for the front end part.
+docker network create myNet
 
+#2. To Run the backend
+docker-compose up
 
-docker build -t myrabbitmqimage:v1 .
-docker run -d --hostname my-rabbit --name some-rabbit -p 7777:15672 -p 5672:5672 -p 15674:15674 myrabbitmqimage:v1
+#3. Download the frontend from #3. Download the backend traffic-monitor module from https://github.com/cscib/drones-simulator-ui

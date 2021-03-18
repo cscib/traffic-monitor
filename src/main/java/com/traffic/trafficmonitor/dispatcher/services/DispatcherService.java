@@ -3,6 +3,7 @@ package com.traffic.trafficmonitor.dispatcher.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.traffic.trafficmonitor.dispatcher.repositories.DroneMonitorPointRepository;
+import com.traffic.trafficmonitor.drones.DroneManager;
 import com.traffic.trafficmonitor.model.cache.DroneMonitorPoint;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -12,10 +13,11 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
-
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -39,8 +41,11 @@ public class DispatcherService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private DroneManager droneManager;
+
     @Async
-    public void sendMessagesToDrone(Long droneId, Iterable<DroneMonitorPoint> points) {
+    public Future<Boolean> sendMessagesToDrone(Long droneId, Iterable<DroneMonitorPoint> points) {
             log.info("[{}] Starting to send messages to drone.", droneId);
             List<DroneMonitorPoint> droneMonitorPointList =
                     StreamSupport.stream(points.spliterator(), false)
@@ -48,13 +53,19 @@ public class DispatcherService {
                             .collect(Collectors.toList());
             String routingKey = routingKeyPrefix + droneId;
             for (DroneMonitorPoint point : droneMonitorPointList) {
-                try {
-                    log.debug("[{}] Sending message {} {} {} {}", point.getDroneId(), point.getLatitude(), point.getLongitude(), point.getTimestamp(), point.getStationNames());
-                    rabbitTemplate.convertAndSend(topicExchangeName, routingKey, buildMessage(point));
-                } catch (JsonProcessingException e) {
-                    log.error("Error sending queue for drone {} with message.", droneId);
+                if (!Thread.currentThread().isInterrupted()) {
+                    try {
+                        log.debug("[{}] Sending message {} {} {} {}", point.getDroneId(), point.getLatitude(), point.getLongitude(), point.getTimestamp(), point.getStationNames());
+                        rabbitTemplate.convertAndSend(topicExchangeName, routingKey, buildMessage(point));
+                    } catch (JsonProcessingException e) {
+                        log.error("Error sending queue for drone {} with message.", droneId);
+                    }
+                } else {
+                    log.warn("[{]} The Sending of Messages to the Drone were interrupted.", droneId);
+                    return new AsyncResult<Boolean>(false);
                 }
             }
+        return new AsyncResult<Boolean>(true);
     }
 
     public Message buildMessage(DroneMonitorPoint point) throws JsonProcessingException {
@@ -66,5 +77,11 @@ public class DispatcherService {
                     .build();
 
     }
+
+
+    public void shutDownDrones(){
+        droneManager.shutDown();
+    }
+
 
 }

@@ -94,6 +94,9 @@ public class Drone implements Runnable{
                 log.error("[{}] An exception occurred and the Drone will shut down.", droneId,ex);
             }
         }
+        running = false;
+        nextPointQueue.clear();
+
         log.info("[{}] Shutting Drone...", droneId);
     }
 }
