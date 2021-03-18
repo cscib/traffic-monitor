@@ -60,7 +60,17 @@ public class Drone implements Runnable{
                 this.getName(), new String(message.getBody())));
         try {
             DroneMonitorPoint movePoint = objectMapper.readValue(message.getBody(), DroneMonitorPoint.class);
+            long pointsInMemory = nextPointQueue.size();
+            while (pointsInMemory >8) {
+                try {
+                    Thread.sleep(10000);
+                    pointsInMemory = nextPointQueue.size();
+                } catch (InterruptedException e) {
+                    log.error("[{}] The drone has more than 10 points {} in memory.", getName(), nextPointQueue.size());
+                }
+            }
             nextPointQueue.add(movePoint);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -76,15 +86,17 @@ public class Drone implements Runnable{
             try {
                 // Fetch Move-to-Point (MTP) and Calculate Distance Between Move-from-Point (MFP) to Move-to-Point (MTP)
                   moveToPoint = nextPointQueue.poll();
-                  if (moveToPoint != null && moveFromPoint != null) {
-                      droneService.simulateFlight(moveToPoint, DroneUtils.calculateFlightTime(moveFromPoint, moveToPoint, averageSpeed));
+                  if (moveToPoint != null) {
+                      if (moveFromPoint == null) {
+                          droneService.simulateFlight(moveToPoint, 5000L);
+                      } else {
+                          droneService.simulateFlight(moveToPoint, DroneUtils.calculateFlightTime(moveFromPoint, moveToPoint, averageSpeed));
+                      }
                       droneService.reportTrafficConditions(moveToPoint);
                       moveFromPoint = moveToPoint;
-                  } else if(moveToPoint == null) {
-                      log.debug("[{}] Waiting 5 sec... No Move-to-Points received yet.", droneId);
-                      droneService.simulateFlight(droneId, 5000L);
                   } else {
-                      moveFromPoint = moveToPoint;
+                      log.info("[{}] Flying for 10 sec... No Move-to-Points received yet.", droneId);
+                      droneService.simulateFlight(droneId, 10000L);
                   }
             } catch (Exception ex) {
 

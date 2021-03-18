@@ -3,7 +3,6 @@ package com.traffic.trafficmonitor.dispatcher;
 import com.traffic.trafficmonitor.dispatcher.repositories.DroneMonitorPointRepository;
 import com.traffic.trafficmonitor.dispatcher.repositories.TrafficReportRepository;
 import com.traffic.trafficmonitor.model.cache.DroneMonitorPoint;
-import com.traffic.trafficmonitor.model.cache.TrafficReport;
 import com.traffic.trafficmonitor.model.dto.Station;
 import com.univocity.parsers.csv.CsvParserSettings;
 import com.univocity.parsers.csv.CsvRoutines;

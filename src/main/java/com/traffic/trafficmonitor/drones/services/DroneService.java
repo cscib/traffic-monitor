@@ -1,5 +1,6 @@
 package com.traffic.trafficmonitor.drones.services;
 
+import com.traffic.trafficmonitor.commons.SimulationUtils;
 import com.traffic.trafficmonitor.dispatcher.repositories.DroneMonitorPointRepository;
 import com.traffic.trafficmonitor.drones.DroneUtils;
 import com.traffic.trafficmonitor.model.cache.DroneMonitorPoint;
@@ -63,13 +64,6 @@ public class DroneService {
                 .ifPresent(trafficReporterService::report);
     }
 
-    private OffsetDateTime calculateSimulatedTime(){
-        if (startTimeMs <= 0) return OffsetDateTime.now();
-
-        long timeDifferenceInMs = realStartTimeMs - startTimeMs;
-        //.atZoneSameInstant((ZoneId.of("GMT"))).
-        return OffsetDateTime.now().minusSeconds(timeDifferenceInMs/1000);
-    }
 
     private TrafficReport buildTrafficReport(int droneId, List<String> stations) {
 
@@ -78,7 +72,7 @@ public class DroneService {
                 .droneSpeed(averageSpeed)
                 .stationsNearby(stations)
                 .trafficConditions(DroneUtils.getTrafficConditions().getValue())
-                .time(calculateSimulatedTime())
+                .time(SimulationUtils.calculateSimulatedTime(startTimeMs, realStartTimeMs))
                 .build();
     }
 

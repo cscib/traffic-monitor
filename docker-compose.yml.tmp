@@ -8,6 +8,8 @@ services:
     depends_on:
       some-rabbit:
         condition: service_healthy
+      some-redis:
+        condition: service_healthy
   some-rabbit:
     container_name: some-rabbit
     build:
@@ -29,6 +31,12 @@ services:
     command: redis-server --requirepass mypass
     ports:
       - "6379:6379"
+      - "16379:16379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 120
 networks:
   default:
     external:

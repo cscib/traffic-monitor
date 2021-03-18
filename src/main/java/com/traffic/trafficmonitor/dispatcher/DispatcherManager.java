@@ -2,6 +2,7 @@ package com.traffic.trafficmonitor.dispatcher;
 
 import com.traffic.trafficmonitor.dispatcher.repositories.DroneMonitorPointRepository;
 import com.traffic.trafficmonitor.dispatcher.services.DispatcherService;
+import com.traffic.trafficmonitor.drones.services.TrafficReporterService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +11,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +20,7 @@ import java.util.concurrent.Future;
 @Slf4j
 @Component
 public class DispatcherManager implements ApplicationRunner {
+
 
 
     @Value("#{${rabbitmq.queues.map}}")
@@ -35,6 +38,8 @@ public class DispatcherManager implements ApplicationRunner {
     private volatile boolean isRunning;
 
     private volatile List<Future<Boolean>> sendMessagesTasks;
+
+
 
     @Override
     public void run(ApplicationArguments args){
@@ -59,7 +64,8 @@ public class DispatcherManager implements ApplicationRunner {
         }
     }
 
-    @Scheduled(cron = "0 10 08 * * ?", zone = "GMT")
+    // It will run 23 minutes after start to simulate stopping at 8.10a.m.
+    @Scheduled(fixedDelay = 10000000, initialDelay = 1380000)
     public void stop() {
         log.warn("STOPPING SIMULATION *****");
         synchronized (this) {
